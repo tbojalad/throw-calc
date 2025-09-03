@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Over/Underweight Implement Conversion</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#121a2b; --muted:#9fb0d0; --text:#e6eefc; --accent:#5eead4; --line:#273249;
+  }
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
+  body{margin:0;background:var(--bg);color:var(--text);}
+  .wrap{max-width:920px;margin:0 auto;padding:20px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;}
+  h1{font-size:clamp(20px,3vw,28px);margin:0 0 8px}
+  p{color:var(--muted);margin:0 0 14px;line-height:1.45}
+  label{display:block;margin:8px 0 4px;color:var(--muted);font-size:13px}
+  input,select{width:100%;background:#0d1424;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .row{display:grid;gap:12px}
+  @media(min-width:720px){.row.cols-2{grid-template-columns:1fr 1fr}.row.cols-3{grid-template-columns:1fr 1fr 1fr}}
+  .hint{font-size:12px;color:var(--muted)}
+  .out{display:grid;gap:12px;grid-template-columns:1fr 1fr 1fr}
+  .box{background:#0d1424;border:1px solid var(--line);border-radius:12px;padding:10px}
+  .box .lbl{font-size:11px;color:var(--muted)}
+  .box .val{font-size:22px;font-weight:700;margin-top:4px}
+  .quick{margin:6px 0 0; font-size:12px; color:var(--muted)}
+  .quick select{width:auto}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Over/Underweight Implement Conversion</h1>
+    <p>
+      This tool gives you a simple estimate of what you should be able to throw with your competition implement,
+      based off of how far you throw heavy or light implements.
+      <br><br>
+      Note that these are estimates. Lots of other factors determine the end result.
+      Example: If your heavy implement shows you can throw further than the light one indicates,
+      you may need to spend more time improving your distance with the light implement.
+      <br><br>
+      When the average of your PRs with all training weights increase, your competition PR will be soon to follow.
+    </p>
+
+    <div class="row cols-2">
+      <div class="card">
+        <label>Event</label>
+        <select id="ev">
+          <option value="shot">Shot Put</option>
+          <option value="discus" selected>Discus</option>
+          <option value="hammer">Hammer</option>
+          <option value="weight">Weight Throw</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="row cols-2">
+          <div>
+            <label>Distance units</label>
+            <select id="dunit">
+              <option value="m" selected>Meters</option>
+              <option value="ft">Feet</option>
+            </select>
+          </div>
+          <div>
+            <label>Weight units</label>
+            <select id="wunit">
+              <option value="kg" selected>kg</option>
+              <option value="lb">lb</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-3" style="margin-top:12px">
+      <div class="card">
+        <label>Known throw distance</label>
+        <input type="number" id="dist" placeholder="e.g., 55.00">
+      </div>
+      <div class="card">
+        <label>Known implement weight</label>
+        <input type="number" id="known" value="2">
+      </div>
+      <div class="card">
+        <label>Competition implement weight</label>
+        <input type="number" id="comp" value="2">
+        <div class="quick">
+          Quick select:
+          <select id="compPreset">
+            <option value="">— choose —</option>
+            <option data-kg="0.75" data-lb="1.65">0.75 kg</option>
+            <option data-kg="1.00" data-lb="2.20">1 kg</option>
+            <option data-kg="1.50" data-lb="3.31">1.5 kg</option>
+            <option data-kg="1.60" data-lb="3.53">1.6 kg</option>
+            <option data-kg="1.75" data-lb="3.86">1.75 kg</option>
+            <option data-kg="2.00" data-lb="4.41">2 kg</option>
+            <option data-kg="3.00" data-lb="6.61">3 kg</option>
+            <option data-kg="4.00" data-lb="8.82">4 kg</option>
+            <option data-kg="5.00" data-lb="11.02">5 kg</option>
+            <option data-kg="6.00" data-lb="13.23">6 kg</option>
+            <option data-kg="7.26" data-lb="16.00">7.26 kg / 16 lb</option>
+            <option data-kg="-"    data-lb="6">6 lb</option>
+            <option data-kg="-"    data-lb="8">8 lb</option>
+            <option data-kg="-"    data-lb="12">12 lb</option>
+            <option data-kg="-"    data-lb="20">20 lb</option>
+            <option data-kg="-"    data-lb="25">25 lb</option>
+            <option data-kg="-"    data-lb="35">35 lb</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="row cols-3" style="margin-top:12px">
+      <div class="card out">
+        <div class="box">
+          <div class="lbl">Meters</div>
+          <div class="val" id="outM">—</div>
+        </div>
+        <div class="box">
+          <div class="lbl">Feet</div>
+          <div class="val" id="outF">—</div>
+        </div>
+        <div class="box">
+          <div class="lbl">Factor used</div>
+          <div class="val" id="outFactor">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <label>Notes</label>
+        <div class="hint">
+          Shot: 2.5 ft/lb • Discus: 20 ft per 0.25 kg • Hammer: 10 ft/lb • Weight: 2 ft/lb.
+          Your technique, wind, and implement quality affect results.
+        </div>
+      </div>
+      <div class="card">
+        <label>Tip</label>
+        <div class="hint">
+          If your heavy implement says you’re ahead of your light, spend time improving the light. Raise the average of your PRs and the comp PR follows.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const FT_PER_M=3.28084, LB_PER_KG=2.20462;
+  const FACTOR = {
+    shot:   { mkg:(2.5/FT_PER_M)*LB_PER_KG, ftlb:2.5 },
+    discus: { mkg:(20/FT_PER_M)/0.25,       ftlb:20/(0.25*LB_PER_KG) },
+    hammer: { mkg:(10/FT_PER_M)*LB_PER_KG,  ftlb:10 },
+    weight: { mkg:(2/FT_PER_M)*LB_PER_KG,   ftlb:2 }
+  };
+
+  const ev=document.getElementById("ev"), dunit=document.getElementById("dunit"), wunit=document.getElementById("wunit"),
+        dist=document.getElementById("dist"), known=document.getElementById("known"), comp=document.getElementById("comp"),
+        compPreset=document.getElementById("compPreset"), outM=document.getElementById("outM"), outF=document.getElementById("outF"), outFactor=document.getElementById("outFactor");
+
+  function compute(){
+    const dVal=Number(dist.value), kw=Number(known.value), cw=Number(comp.value);
+    if(!isFinite(dVal)||!isFinite(kw)||!isFinite(cw)){ outM.textContent=outF.textContent=outFactor.textContent="—"; return; }
+    const dM=(dunit.value==='ft')?dVal/FT_PER_M:dVal;
+    const kwK=(wunit.value==='lb')?kw/LB_PER_KG:kw;
+    const cwK=(wunit.value==='lb')?cw/LB_PER_KG:cw;
+    const f=FACTOR[ev.value].mkg;
+    const predM=dM - f*(cwK-kwK), predF=predM*FT_PER_M;
+    outM.textContent=isFinite(predM)?predM.toFixed(2)+' m':'—';
+    outF.textContent=isFinite(predF)?predF.toFixed(1)+' ft':'—';
+    outFactor.textContent=f.toFixed(3)+' m/kg';
+  }
+
+  function applyCompPreset(){
+    const opt=compPreset.options[compPreset.selectedIndex];
+    if(!opt) return;
+    const kg=opt.getAttribute("data-kg"), lb=opt.getAttribute("data-lb");
+    let val=null;
+    if(wunit.value==='kg'&&kg&&kg!=="-") val=Number(kg);
+    if(wunit.value==='lb'&&lb&&lb!=="-") val=Number(lb);
+    if(val!=null&&isFinite(val)){ comp.value=String(val); compute(); }
+  }
+
+  [ev,dunit,wunit,dist,known,comp].forEach(el=>{el.addEventListener("input",compute);el.addEventListener("change",compute);});
+  compPreset.addEventListener("change",applyCompPreset);
+  wunit.addEventListener("change",()=>{applyCompPreset();compute();});
+
+  compute();
+})();
+</script>
+</body>
+</html>
